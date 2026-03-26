@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carnaval 2027 • Painel Operacional</title>
+  <meta name="description" content="Painel operacional do Carnaval 2027 com Supabase e GitHub Pages." />
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="page-bg">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+  </div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-hidden="true">
+          <span>🎭</span>
+        </div>
+        <div>
+          <p class="eyebrow">Painel operacional</p>
+          <h1 id="siteTitle">Carnaval 2027</h1>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div id="sessionBadge" class="session-badge hidden"></div>
+        <button id="refreshBtn" class="ghost-btn hidden" type="button">Atualizar dados</button>
+        <button id="logoutBtn" class="ghost-btn hidden" type="button">Sair</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section id="loginSection" class="panel login-panel">
+        <div class="panel-header">
+          <p class="eyebrow">Acesso</p>
+          <h2>Acesso livre no painel</h2>
+          <p class="muted">Este projeto está configurado para abrir direto, sem tela de login.</p>
+        </div>
+
+        <form id="loginForm" class="stack gap-16">
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" placeholder="voce@exemplo.com" required />
+          </div>
+
+          <div class="field">
+            <label for="password">Senha</label>
+            <input id="password" name="password" type="password" placeholder="••••••••" required />
+          </div>
+
+          <button class="primary-btn" type="submit">Acesso livre</button>
+        </form>
+
+        <p class="mini-note">Atenção: neste modo sem senha, qualquer pessoa com acesso ao site poderá visualizar e editar o planejamento operacional.</p>
+      </section>
+
+      <section id="dashboardSection" class="dashboard hidden">
+        <aside class="sidebar panel">
+          <div class="sidebar-head">
+            <p class="eyebrow">Navegação</p>
+            <h2>Operação</h2>
+          </div>
+
+          <nav class="nav-tabs" id="navTabs">
+            <button class="nav-tab is-active" data-tab="blocos" type="button">Blocos Regionais</button>
+            <button class="nav-tab" data-tab="alteracoes" type="button">Alterações da Semana</button>
+            <button class="nav-tab" data-tab="status" type="button">Status dos Blocos</button>
+            <button class="nav-tab" data-tab="levantamento" type="button">Levantamento</button>
+          </nav>
+
+          <div class="sidebar-tip">
+            <strong>Fluxo semanal</strong>
+            <p>Importe a base no Supabase, processe a importação e depois use este painel para revisar mudanças e atualizar o planejamento.</p>
+          </div>
+        </aside>
+
+        <section class="content">
+          <div class="panel filters-panel">
+            <div class="filters-grid">
+              <div class="field">
+                <label for="searchInput">Buscar bloco</label>
+                <input id="searchInput" type="text" placeholder="Nome ou número de inscrição" />
+              </div>
+
+              <div class="field">
+                <label for="regionalFilter">Regional</label>
+                <select id="regionalFilter">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="statusFilter">Status</label>
+                <select id="statusFilter">
+                  <option value="">Todos</option>
+                  <option value="APROVADO">Aprovado</option>
+                  <option value="CADASTRADO">Cadastrado</option>
+                  <option value="CANCELADO">Cancelado</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="dateFilter">Data</label>
+                <input id="dateFilter" type="date" />
+              </div>
+            </div>
+          </div>
+
+          <section id="summaryCards" class="summary-grid"></section>
+
+          <section id="tab-blocos" class="tab-panel active">
+            <div class="panel">
+              <div class="panel-header row-between">
+                <div>
+                  <p class="eyebrow">Visão principal</p>
+                  <h2>Blocos Regionais</h2>
+                </div>
+                <span id="blocksCount" class="pill"></span>
+              </div>
+              <div id="blocosTableWrap" class="table-wrap"></div>
+            </div>
+          </section>
+
+          <section id="tab-alteracoes" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header row-between">
+                <div>
+                  <p class="eyebrow">Monitoramento</p>
+                  <h2>Alterações da Semana</h2>
+                </div>
+                <span id="changesCount" class="pill"></span>
+              </div>
+              <div id="alteracoesTableWrap" class="table-wrap"></div>
+            </div>
+          </section>
+
+          <section id="tab-status" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <p class="eyebrow">Resumo diário</p>
+                <h2>Status dos Blocos</h2>
+              </div>
+              <div id="statusTableWrap" class="table-wrap"></div>
+            </div>
+          </section>
+
+          <section id="tab-levantamento" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <p class="eyebrow">Distribuição operacional</p>
+                <h2>Levantamento dos Blocos</h2>
+              </div>
+              <div id="levantamentoTableWrap" class="table-wrap"></div>
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="planningModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal="true"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Planejamento operacional</p>
+          <h3 id="modalTitle">Editar planejamento</h3>
+        </div>
+        <button id="closeModalBtn" class="ghost-btn" type="button">Fechar</button>
+      </div>
+
+      <form id="planningForm" class="modal-form">
+        <input type="hidden" id="modalBlockId" />
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="situacaoDoPlano">Situação do plano</label>
+            <select id="situacaoDoPlano">
+              <option value="SEM PLANO">SEM PLANO</option>
+              <option value="EM ELABORACAO">EM ELABORAÇÃO</option>
+              <option value="CONCLUIDO">CONCLUÍDO</option>
+              <option value="EM EXECUCAO">EM EXECUÇÃO</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="numeroPlano">Nº do Plano de Emprego Operacional</label>
+            <input id="numeroPlano" type="text" />
+          </div>
+
+          <div class="field span-2">
+            <label for="equipeEmpenhada">Equipe empenhada</label>
+            <input id="equipeEmpenhada" type="text" />
+          </div>
+
+          <div class="field">
+            <label for="prioridadeDsub">Prioridade DSUB</label>
+            <input id="prioridadeDsub" type="text" />
+          </div>
+
+          <div class="field">
+            <label for="apoioGcmbh">Apoio GCMBH</label>
+            <input id="apoioGcmbh" type="text" />
+          </div>
+
+          <div class="field span-2">
+            <label for="informacoesPlanejamento">Informações</label>
+            <textarea id="informacoesPlanejamento" rows="3"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="qtdTransito">Quantidade de agentes do TRÂNSITO</label>
+            <input id="qtdTransito" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdDme">Quantidade de agentes do DME</label>
+            <input id="qtdDme" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdGtur">Quantidade de agentes do GTUR</label>
+            <input id="qtdGtur" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdGepam">Quantidade de agentes do GEPAM</label>
+            <input id="qtdGepam" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdGpir">Quantidade de agentes do GPIR</label>
+            <input id="qtdGpir" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdOutros">Quantidade de agentes de OUTROS</label>
+            <input id="qtdOutros" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdDma">Quantidade de agentes do DMA</label>
+            <input id="qtdDma" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdNorte">Quantidade de agentes NORTE</label>
+            <input id="qtdNorte" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdVendaNova">Quantidade de agentes VENDA NOVA</label>
+            <input id="qtdVendaNova" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdPampulha">Quantidade de agentes PAMPULHA</label>
+            <input id="qtdPampulha" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdLeste">Quantidade de agentes LESTE</label>
+            <input id="qtdLeste" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdNordeste">Quantidade de agentes NORDESTE</label>
+            <input id="qtdNordeste" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdBarreiro">Quantidade de agentes BARREIRO</label>
+            <input id="qtdBarreiro" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdOeste">Quantidade de agentes OESTE</label>
+            <input id="qtdOeste" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdNoroeste">Quantidade de agentes NOROESTE</label>
+            <input id="qtdNoroeste" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdCentroSul">Quantidade de agentes CENTRO SUL</label>
+            <input id="qtdCentroSul" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="qtdHipercentro">Quantidade de agentes HIPERCENTRO</label>
+            <input id="qtdHipercentro" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="totalAgentesEmpenhados">TOTAL DE AGENTES EMPENHADOS</label>
+            <input id="totalAgentesEmpenhados" type="number" value="0" readonly />
+          </div>
+
+          <div class="field">
+            <label for="ordemServicoDco">Ordem de serviço DCO</label>
+            <input id="ordemServicoDco" type="text" />
+          </div>
+          <div class="field">
+            <label for="ordemServicoTransito">Ordem de serviço Trânsito</label>
+            <input id="ordemServicoTransito" type="text" />
+          </div>
+          <div class="field">
+            <label for="ordemServicoGtur">Ordem de serviço GTUR</label>
+            <input id="ordemServicoGtur" type="text" />
+          </div>
+          <div class="field">
+            <label for="ordemServicoDme">Ordem de serviço DME</label>
+            <input id="ordemServicoDme" type="text" />
+          </div>
+          <div class="field">
+            <label for="ordemServicoGepam">Ordem de serviço GEPAM</label>
+            <input id="ordemServicoGepam" type="text" />
+          </div>
+          <div class="field">
+            <label for="ordemServicoGpir">Ordem de serviço GPIR</label>
+            <input id="ordemServicoGpir" type="text" />
+          </div>
+          <div class="field">
+            <label for="ordemServicoDma">Ordem de serviço DMA</label>
+            <input id="ordemServicoDma" type="text" />
+          </div>
+          <div class="field">
+            <label for="hipercentroTexto">HIPERCENTRO</label>
+            <input id="hipercentroTexto" type="text" />
+          </div>
+          <div class="field">
+            <label for="denespTexto">DENESP</label>
+            <input id="denespTexto" type="text" />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="ghost-btn" id="cancelModalBtn" type="button">Cancelar</button>
+          <button class="primary-btn" type="submit">Salvar planejamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
