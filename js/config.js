@@ -1,7 +1,7 @@
 export const CONFIG = {
   siteTitle: 'Carnaval 2027 • Painel Operacional',
-  supabaseUrl: 'COLE_AQUI_SUA_SUPABASE_URL',
-  supabaseAnonKey: 'COLE_AQUI_SUA_SUPABASE_ANON_KEY',
+  supabaseUrl: 'https://uhmzkpckjqvfxwstyhtx.supabase.co',
+  supabaseAnonKey: 'sb_publishable_-WC4000_m1W0WwCsowa5IA_5FasvZFr',
   requireLogin: false,
   defaultPageSize: 15,
   carnavalYear: 2027
